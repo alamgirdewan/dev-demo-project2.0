@@ -1,1 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Last Carbon Navigator</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
 
+<!-- WELCOME SCREEN -->
+<div id="welcomeScreen" class="screen active">
+  <div class="welcome-content">
+    <div class="logo-ring">&#9992;</div>
+    <h1 class="game-title">The Last Carbon Navigator</h1>
+    <p class="game-subtitle">The Green Machine Mission</p>
+    <p class="game-desc">
+      Fly to <strong>10 airports</strong>, collect <strong>5 machine parts</strong>
+      and build a green machine before your CO₂ budget runs out!
+    </p>
+    <div class="input-row">
+      <input type="text" id="playerNameInput" placeholder="Enter your name" maxlength="20" />
+      <button id="startGameBtn" class="btn btn-primary">LAUNCH MISSION</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
