@@ -35,7 +35,7 @@ class GameSession:
     REQUIRED_PARTS       = ['Electric Motor', 'Battery', 'Air Filter', 'Propeller', 'Solar Panel']
     START_AIRPORT        = 'EFHK'
     START_BUDGET         = 10000
-    PART_CHANCE          = 0.4
+    PART_CHANCE          = 0.5
     REQUIRED_VISITS      = 10
     REQUIRED_PARTS_COUNT = 5
 
@@ -93,3 +93,60 @@ class GameSession:
         budget_score     = max(0, self.budget // 100)
         efficiency_bonus = max(0, (self.REQUIRED_VISITS - len(self.visited)) * 50)
         return parts_score + budget_score + efficiency_bonus
+
+class GameManager:
+
+    def __init__(self):
+        self.sessions = {}
+
+    def create(self, session_id, player_name):
+        self.sessions[session_id] = GameSession(player_name)
+
+    def get(self, session_id):
+        return self.sessions.get(session_id)
+
+    def remove(self, session_id):
+        return self.sessions.pop(session_id, None)
+
+
+class WeatherService:
+
+    BASE_URL = 'https://api.openweathermap.org/data/2.5/weather'
+
+    EFFECTS = {
+        'Clear':        ('\U00002600', +300),
+        'Clouds':       ('\U00002601', 0),
+        'Rain':         ('\U0001F327', -500),
+        'Drizzle':      ('\U0001F326', -300),
+        'Thunderstorm': ('\U000026C8', -900),
+        'Snow':         ('\U00002744', -700),
+        'Mist':         ('\U0001F32B', -200),
+        'Fog':          ('\U0001F32B', -400),
+        'Dust':         ('\U0001F32A', -600),
+        'Haze':         ('\U0001F32B', -200),
+    }
+
+    def fetch(self, lat, lng):
+        try:
+            resp = requests.get(self.BASE_URL, params={
+                'lat':   lat,
+                'lon':   lng,
+                'appid': config.WEATHER_API_KEY,
+                'units': 'metric',
+            }, timeout=4)
+            if resp.status_code != 200:
+                return None
+            data        = resp.json()
+            condition   = data['weather'][0]['main']
+            description = data['weather'][0]['description'].capitalize()
+            temp        = round(data['main']['temp'])
+            icon, effect = self.EFFECTS.get(condition, ('\U000026C5', 0))
+            return {
+                'icon':        icon,
+                'description': description,
+                'temp':        temp,
+                'condition':   condition,
+                'co2_effect':  effect,
+            }
+        except Exception:
+            return None
