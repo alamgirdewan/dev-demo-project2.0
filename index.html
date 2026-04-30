@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Last Carbon Navigator</title>
+  <title>ECO-BUILDER: The Green Machine Mission</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
@@ -11,22 +11,54 @@
 </head>
 <body>
 
-<!-- WELCOME SCREEN -->
+<!--WELCOME SCREEN-->
+
 <div id="welcomeScreen" class="screen active">
   <div class="welcome-content">
     <div class="logo-ring">&#9992;</div>
-    <h1 class="game-title">The Last Carbon Navigator</h1>
+    <h1 class="game-title">ECO-BUILDER</h1>
     <p class="game-subtitle">The Green Machine Mission</p>
     <p class="game-desc">
       Fly to <strong>10 airports</strong>, collect <strong>5 machine parts</strong>
-      and build a green machine before your CO₂ budget runs out!
+      and build a green machine — before your CO₂ budget runs out!
+      Watch out: bad weather burns extra fuel.
     </p>
     <div class="input-row">
-      <input type="text" id="playerNameInput" placeholder="Enter your name" maxlength="20" />
-      <button id="startGameBtn" class="btn btn-primary">LAUNCH MISSION</button>
+      <input type="text" id="playerNameInput" placeholder="Enter Your Name (e.g. Chau)" maxlength="20" />
+      <button id="startGameBtn" class="btn btn-primary">Start</button>
     </div>
   </div>
 </div>
+
+<!--GAME SCREEN-->
+
+<div id="gameScreen" class="screen">
+
+  <header class="hud">
+    <div class="hud-item">
+      <span class="hud-label">Captain</span>
+      <span class="hud-value" id="playerNameDisplay">—</span>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label">Airports</span>
+      <span class="hud-value"><span id="turnDisplay">0</span>/10</span>
+    </div>
+    <div class="hud-item hud-co2">
+      <span class="hud-label">CO₂ Budget</span>
+      <span class="hud-value" id="budgetDisplay">10000</span>
+      <div class="bar-wrap"><div id="co2Bar" class="bar"></div></div>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label">Score</span>
+      <span class="hud-value accent" id="scoreDisplay">0</span>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label">Parts</span>
+      <span class="hud-value"><span id="partsDisplay">0</span>/5</span>
+    </div>
+    <button id="toggleLeaderboardBtn" class="btn btn-small">&#127942;</button>
+    <button id="endGameBtn" class="btn btn-danger">ABORT</button>
+  </header>
 
 <script src="script.js"></script>
 </body>
