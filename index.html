@@ -60,6 +60,52 @@
     <button id="endGameBtn" class="btn btn-danger">ABORT</button>
   </header>
 
+<!--LEADERBOARD-->
+
+<div id="leaderboardOverlay" class="overlay hidden">
+  <div class="overlay-card">
+    <div class="overlay-header">
+      <span>&#127942; Leaderboard</span>
+        <button id="closeLeaderboardBtn" class="close-btn">✕</button>
+    </div>
+    <div id="leaderboardList" class="lb-list"></div>
+   </div>
+  </div>
+
+  <div class="game-body">
+
+  <!--LEFT-->
+    <aside class="panel left-panel">
+      <div class="card">
+        <div class="card-title">&#128681; Current Airport</div>
+        <div class="airport-name" id="locationName">Loading…</div>
+        <div class="airport-sub" id="locationCountry"></div>
+        <div class="airport-sub mono" id="locationCoords"></div>
+      </div>
+
+      <div class="card weather-card" id="weatherCard">
+        <div class="card-title">&#127780; Weather</div>
+        <div id="weatherDisplay" class="weather-body">Fetching…</div>
+        <div id="weatherEffect" class="weather-effect"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">&#128736; Parts Collected</div>
+        <div id="partsGrid" class="parts-grid"></div>
+      </div>
+
+      <div id="messageBox" class="message-box hidden"></div>
+
+      <div class="card">
+        <div class="card-title">&#128506; Route Overview</div>
+        <div id="minimap"></div>
+      </div>
+    </aside>
+    
+<!--MAP-->
+ <div id="map"></div>
+
+ 
 <script src="script.js"></script>
 </body>
 </html>
