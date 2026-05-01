@@ -180,6 +180,98 @@ def start():
     return jsonify({'status': 'success', 'message': f'Game started for {player_name}'})
 
 
+@app.route('/status/<session_id>')
+def status(session_id):
+    session = manager.get(session_id)
+    if not session:
+        return jsonify({'status': 'error', 'message': 'Session not found'}), 404
+
+    conn, cursor = get_cursor()
+    try:
+
+        cursor.execute(
+            'SELECT ident, name, iso_country, latitude_deg, longitude_deg '
+            'FROM airport WHERE ident = %s', (session.current,)
+        )
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({'status': 'error', 'message': 'Airport not found'}), 404
+
+        loc = Airport(row)
+        weather = weather_service.fetch(loc.lat, loc.lng)
+
+        message = ''
+        if len(session.visited) > 0 and weather:
+            session.apply_weather_effect(weather['co2_effect'])
+            message += f"Weather: {weather['description']} ({weather['temp']}°C) - CO₂ effect: {weather['co2_effect']:+d}\n"
+
+        part = session.try_collect_part()
+        if part:
+            message += f"Ohho! You got '{part}' at {loc.name}!"
+        elif len(session.visited) == 0:
+            message += "Mission started! Fly to another airport to find parts."
+
+        max_dist_deg = session.budget / 100
+
+        cursor.execute('''
+                       SELECT ident, name, iso_country, latitude_deg, longitude_deg
+                       FROM airport
+                       WHERE ident != %s
+                         AND type = 'large_airport'
+                         AND (ABS(latitude_deg - %s) + ABS(longitude_deg - %s)) <= %s
+                       ORDER BY RAND() LIMIT 4
+                       ''', (session.current, loc.lat, loc.lng, max_dist_deg))
+
+        destinations = []
+        for row in cursor.fetchall():
+            dest = Airport(row)
+            distance = loc.distance_to(dest)
+            cost = round(distance * 100)
+            destinations.append({
+                **dest.to_dict(),
+                'cost': cost
+            })
+
+        is_won = session.is_completed()
+        is_lost = False
+        loss_reason = ''
+
+        if len(session.visited) >= session.REQUIRED_VISITS and len(
+                session.collected_parts) < session.REQUIRED_PARTS_COUNT:
+            is_lost = True
+            loss_reason = (
+                f"You visited all 10 airports but collected only "
+                f"{len(session.collected_parts)}/5 parts. Mission Failed!"
+            )
+
+
+        elif not destinations and not is_won:
+            is_lost = True
+            parts = []
+            if len(session.visited) < session.REQUIRED_VISITS:
+                parts.append(f"You visited only {len(session.visited)} new airports.")
+            if len(session.collected_parts) < session.REQUIRED_PARTS_COUNT:
+                parts.append(f"You couldn't collect all 5 parts.")
+            if session.budget <= 0:
+                parts.append("Your CO₂ budget is exhausted.")
+            loss_reason = " ".join(parts) if parts else "No airports within budget."
+
+        return jsonify({
+            'status': 'success',
+            'game_state': session.to_dict(),
+            'current_location_data': loc.to_dict(),
+            'destinations': destinations,
+            'weather': weather,
+            'message': message.strip(),
+            'is_completed': is_won,
+            'is_lost': is_lost,
+            'loss_reason': loss_reason,
+            'visited_count': len(session.visited),
+            'parts_count': len(session.collected_parts),
+        })
+    finally:
+        cursor.close()
+        conn.close()
 
 
 if __name__ == '__main__':
