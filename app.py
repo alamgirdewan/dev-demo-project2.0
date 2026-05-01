@@ -150,3 +150,37 @@ class WeatherService:
             }
         except Exception:
             return None
+
+manager         = GameManager()
+weather_service = WeatherService()
+
+
+def get_cursor():
+    conn = mysql.connector.connect(
+        host=config.DB_HOST, user=config.DB_USER,
+        password=config.DB_PASSWORD, database=config.DB_NAME,
+        auth_plugin='mysql_native_password'
+    )
+    return conn, conn.cursor(dictionary=True)
+
+
+@app.route('/ping')
+def ping():
+    return jsonify({'status': 'ok'})
+
+
+@app.route('/start', methods=['POST'])
+def start():
+    data        = request.get_json()
+    session_id  = data.get('session_id')
+    player_name = data.get('name', 'Captain')
+    if not session_id:
+        return jsonify({'status': 'error', 'message': 'session_id required'}), 400
+    manager.create(session_id, player_name)
+    return jsonify({'status': 'success', 'message': f'Game started for {player_name}'})
+
+
+
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
