@@ -271,4 +271,135 @@ async function loadStatus() {
     buildDestinations(destinations, st.curLat, st.curLng);
     showWeather(weather, data.visited_count);
 
+    if (message) {
+
+  // DEBUG (optional)
+  console.log("MESSAGE:", message);
+
+  if (message.toLowerCase().includes("got")) {
+    showCelebration();
+  }
+
+  showMessage('\u{1F6E0} ' + message);
+}
+
+    if (is_completed) {
+      setTimeout(() => endGame(), 1200);
+    } else if (is_lost) {
+
+      showMessage('\u{1F480} ' + (loss_reason || 'Mission failed!'), 'error');
+      setTimeout(() => endGame(), 2000);
+    } else if (gs.budget <= 0) {
+      showMessage('\u{1F480} CO₂ budget exhausted!', 'error');
+      setTimeout(() => endGame(), 1500);
+    }
+  } catch(e) { showMessage('API error: '+e.message,'error'); }
+}
+
+
+//START & ENDGAME
+async function startGame() {
+  const name = document.getElementById('playerNameInput').value.trim();
+  if (!name) { document.getElementById('playerNameInput').focus(); return; }
+
+  st.playerName = name;
+  st.sessionId  = 'sess_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+
+  [st.flightLines, st.minimapLines, st.visitedMarkers, st.optionMarkers].forEach(arr => {
+    arr.forEach(l => { try { map.removeLayer(l); } catch(e){} });
+    arr.length = 0;
+  });
+  if (st.currentMarker) { map.removeLayer(st.currentMarker); st.currentMarker = null; }
+
+  try {
+    const res  = await fetch(API+'/start', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ session_id:st.sessionId, name }),
+    });
+    const data = await res.json();
+    if (data.status !== 'success') { alert('Failed to start.'); return; }
+    showScreen('gameScreen');
+    setTimeout(async () => { map.invalidateSize(); minimap.invalidateSize(); await loadStatus(); }, 300);
+  } catch(e) { alert('Cannot reach server.\nMake sure app.py is running.\n'+e.message); }
+}
+
+async function endGame() {
+  try {
+    const res  = await fetch(API+'/game-over', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ session_id:st.sessionId }),
+    });
+    const data = await res.json();
+    const r    = data.result || {};
+    const ok   = r.is_won;
+
+    document.getElementById('resultName').textContent     = st.playerName;
+    document.getElementById('resultScore').textContent    = r.final_score||0;
+    document.getElementById('resultBudget').textContent   = r.budget_left||0;
+    document.getElementById('resultParts').textContent    = (r.parts_count||0)+'/5';
+    document.getElementById('resultAirports').textContent = (r.airports_count||0)+'/10';
+    document.getElementById('resultRating').textContent   = r.rating ? r.rating.replace(/[\u{1F000}-\u{1FFFF}]/gu, '').trim() : '—';
+    document.getElementById('resultBadge').textContent    = '';
+    document.getElementById('resultTitle').textContent    = ok ? 'Mission Accomplished!' : 'Mission Failed';
+    document.getElementById('resultTitle').style.color    = ok ? 'var(--accent2)' : 'var(--danger)';
+
+    saveScore({ name:st.playerName, score:r.final_score||0, parts:r.parts_count||0,
+      airports:r.airports_count||0, date:new Date().toLocaleDateString() });
+    showScreen('gameOverScreen');
+  } catch(e) { showScreen('gameOverScreen'); }
+}
+
+//LEADERBOARD
+const LB_KEY = 'ecobuilder_v3';
+
+function getScores() { try { return JSON.parse(localStorage.getItem(LB_KEY))||[]; } catch(e){ return []; } }
+
+function saveScore(entry) {
+  const s = getScores(); s.push(entry); s.sort((a,b)=>b.score-a.score);
+  localStorage.setItem(LB_KEY, JSON.stringify(s.slice(0,10)));
+}
+
+function renderLB(id) {
+  const el = document.getElementById(id);
+  const s  = getScores();
+  if (!s.length) { el.innerHTML = '<p class="hint">No scores yet!</p>'; return; }
+  el.innerHTML = '';
+  s.forEach((sc, i) => {
+    const row = document.createElement('div');
+    row.className = 'lb-row'+(i<3?' rank-'+(i+1):'');
+    row.innerHTML = `<div class="lb-rank">${i<3?MEDALS[i]:'#'+(i+1)}</div>
+      <div class="lb-info"><div class="lb-name">${sc.name}</div>
+      <div class="lb-detail">${sc.parts}/5 parts · ${sc.airports}/10 airports · ${sc.date}</div></div>
+      <div class="lb-score">${sc.score}</div>`;
+    el.appendChild(row);
+  });
+}
+
+//EVENTS
+
+document.getElementById('startGameBtn').onclick = startGame;
+document.getElementById('playerNameInput').onkeydown = e => { if(e.key==='Enter') startGame(); };
+document.getElementById('endGameBtn').onclick = endGame;
+document.getElementById('playAgainBtn').onclick = () => {
+  document.getElementById('playerNameInput').value = '';
+  document.getElementById('leaderboardResult').classList.add('hidden');
+  showScreen('welcomeScreen');
+};
+
+document.getElementById('toggleLeaderboardBtn').onclick = () => {
+  renderLB('leaderboardList');
+  document.getElementById('leaderboardOverlay').classList.remove('hidden');
+};
+
+document.getElementById('closeLeaderboardBtn').onclick = () => document.getElementById('leaderboardOverlay').classList.add('hidden');
+document.getElementById('leaderboardOverlay').onclick = e => { if(e.target===e.currentTarget) document.getElementById('leaderboardOverlay').classList.add('hidden'); };
+document.getElementById('showLeaderboardResultBtn').onclick = () => {
+  const el = document.getElementById('leaderboardResult');
+  if (el.classList.contains('hidden')) { renderLB('leaderboardResultList'); el.classList.remove('hidden'); }
+  else el.classList.add('hidden');
+};
+
+document.addEventListener('keydown', e => { if(e.key==='Escape') document.getElementById('leaderboardOverlay').classList.add('hidden'); });
+
+window.addEventListener('load', () => { initMaps(); showScreen('welcomeScreen'); });
 
