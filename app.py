@@ -298,17 +298,36 @@ def move_location():
     return jsonify({'status': 'success', 'message': f'Moved to {new_ident}'})
 
 
+@app.route('/game-over', methods=['POST'])
+def game_over():
+    data = request.get_json()
+    session_id = data.get('session_id')
 
+    session = manager.remove(session_id)
+    if not session:
+        return jsonify({'status': 'error', 'message': 'Session not found'}), 404
 
+    is_won = session.is_completed()
 
+    reason_parts = [
+        f"Visited {len(session.visited)}/10 airports",
+        f"Collected {len(session.collected_parts)}/5 parts",
+        f"Budget left: {session.budget} units"
+    ]
+    reason = " • ".join(reason_parts)
 
-
-
-
-
-
-
-
+    return jsonify({
+        'status': 'success',
+        'result': {
+            'final_score': session.final_score(),
+            'budget_left': session.budget,
+            'parts_count': len(session.collected_parts),
+            'airports_count': len(session.visited),
+            'rating': 'Mission Accomplished!' if is_won else 'Mission Failed',
+            'reason': reason,
+            'is_won': is_won,
+        }
+    })
 
 
 if __name__ == '__main__':
