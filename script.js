@@ -91,3 +91,72 @@ function drawLine(fromLat, fromLng, toLat, toLng) {
   st.flightLines.push(L.polyline([[fromLat,fromLng],[toLat,toLng]], opts).addTo(map));
   st.minimapLines.push(L.polyline([[fromLat,fromLng],[toLat,toLng]], { color:'rgba(37,99,235,0.4)', weight:1.5 }).addTo(minimap));
 }
+
+//SCREENS
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.display='none'; });
+  const el = document.getElementById(id);
+  el.style.display = 'flex'; el.classList.add('active');
+}
+
+
+//HUD
+function updateHUD(gs) {
+  document.getElementById('playerNameDisplay').textContent = gs.player;
+  document.getElementById('turnDisplay').textContent       = gs.visited_airports.length;
+  document.getElementById('budgetDisplay').textContent     = Math.max(0, Math.round(gs.budget));
+  document.getElementById('scoreDisplay').textContent      = gs.collected_parts.length * 20;
+  document.getElementById('partsDisplay').textContent      = gs.collected_parts.length;
+
+
+  const pct = Math.max(0, gs.budget / MAX_BUDGET * 100);
+  const bar = document.getElementById('co2Bar');
+  bar.style.width = pct + '%';
+  bar.style.background = pct > 50 ? 'linear-gradient(90deg,#16a34a,#2563eb)'
+    : pct > 20 ? 'linear-gradient(90deg,#d97706,#f59e0b)' : 'linear-gradient(90deg,#dc2626,#f87171)';
+
+  const grid = document.getElementById('partsGrid');
+  grid.innerHTML = '';
+  PARTS.forEach(p => {
+    const d = document.createElement('div');
+    d.className = 'part-chip' + (gs.collected_parts.includes(p) ? ' collected' : '');
+    d.textContent = gs.collected_parts.includes(p) ? '✓ '+p : p;
+    grid.appendChild(d);
+  });
+}
+
+
+//WEATHER
+function showWeather(weather, visitedCount) {
+  if (!weather) return;
+  document.getElementById('weatherDisplay').textContent = weather.icon + ' ' + weather.description + ' · ' + weather.temp + '°C';
+  const eff = document.getElementById('weatherEffect');
+
+  if (visitedCount === 0) {
+    eff.textContent = '';
+    eff.className = 'weather-effect';
+    return;
+  }
+  if (weather.co2_effect > 0) {
+    eff.textContent = '☀ Perfect conditions: +' + weather.co2_effect + ' CO₂ bonus';
+    eff.className = 'weather-effect bonus';
+  } else if (weather.co2_effect < 0) {
+    const severity = weather.co2_effect < -800 ? 'bad' : 'penalty';
+    eff.textContent = '⚠ Weather penalty: ' + weather.co2_effect + ' CO₂';
+    eff.className = 'weather-effect ' + severity;
+  } else {
+    eff.textContent = 'No weather effect';
+    eff.className = 'weather-effect';
+  }
+}
+
+
+//MESSAGES
+function showMessage(text, type) {
+  const box = document.getElementById('messageBox');
+  box.textContent = text;
+  box.className = 'message-box' + (type === 'error' ? ' error' : '');
+  clearTimeout(box._t);
+  box._t = setTimeout(() => { box.className = 'message-box hidden'; }, 5000);
+}
+
