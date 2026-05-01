@@ -274,6 +274,28 @@ def status(session_id):
         conn.close()
 
 
+@app.route('/move-location', methods=['POST'])
+def move_location():
+    data = request.get_json()
+    session_id = data.get('session_id')
+    new_ident = data.get('location')
+    cost = int(data.get('cost', 0))
+
+    session = manager.get(session_id)
+    if not session:
+        return jsonify({'status': 'error', 'message': 'Session not found'}), 404
+
+    if not new_ident:
+        return jsonify({'status': 'error', 'message': 'location required'}), 400
+
+    result = session.fly_to(new_ident, cost)
+
+    if result == 'limit_reached':
+        return jsonify({'status': 'error', 'message': 'Maximum 10 airports already visited!'}), 400
+    if not result:
+        return jsonify({'status': 'error', 'message': 'Not enough CO₂ budget!'}), 400
+
+    return jsonify({'status': 'success', 'message': f'Moved to {new_ident}'})
 
 
 
