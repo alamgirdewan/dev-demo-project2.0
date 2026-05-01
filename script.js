@@ -160,3 +160,115 @@ function showMessage(text, type) {
   box._t = setTimeout(() => { box.className = 'message-box hidden'; }, 5000);
 }
 
+
+//DESTINATIONS
+function calcDist(lat1, lng1, lat2, lng2) {
+  const R = 6371, r = Math.PI/180;
+  const dLat = (lat2-lat1)*r, dLng = (lng2-lng1)*r;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*r)*Math.cos(lat2*r)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function buildDestinations(destinations, curLat, curLng) {
+  const panel = document.getElementById('destinationsPanel');
+  panel.innerHTML = '';
+  clearOptions();
+
+  if (!destinations || destinations.length === 0) {
+    panel.innerHTML = '<p class="hint">No reachable airports — budget too low!</p>';
+    return;
+  }
+
+
+  destinations.forEach(dest => {
+
+    const cost = dest.cost;
+    const dist = calcDist(curLat, curLng, dest.latitude_deg, dest.longitude_deg);
+
+    const m = L.marker([dest.latitude_deg, dest.longitude_deg], { icon:icon('marker-option') })
+      .bindTooltip('✈️ '+dest.name+' | CO₂: '+cost, { direction:'top' }).addTo(map);
+    m.on('click', () => travelTo(dest, cost, curLat, curLng));
+    st.optionMarkers.push(m);
+
+    const btn = document.createElement('button');
+    btn.className = 'dest-btn';
+    btn.innerHTML = `<span class="dest-name">✈️ ${dest.name}</span>
+      <div class="dest-meta"><span>${dest.iso_country} · ${dist.toFixed(0)} km</span>
+      <span class="dest-cost">CO₂ −${cost}</span></div>`;
+    btn.onclick = () => travelTo(dest, cost, curLat, curLng);
+    panel.appendChild(btn);
+  });
+}
+
+//TRAVEL
+async function travelTo(dest, cost, fromLat, fromLng) {
+  try {
+    const res = await fetch(API + '/move-location', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session_id: st.sessionId,
+        location: dest.ident,
+        cost: cost
+      })
+    });
+
+    //  IMPORTANT CHECK
+    if (!res.ok) {
+      showMessage('Move failed (server error)', 'error');
+      return;
+    }
+
+    const data = await res.json();
+
+    if (data.status !== 'success') {
+      showMessage(data.message || 'Move failed', 'error');
+      return;
+    }
+
+    //  SUCCESS
+    drawLine(fromLat, fromLng, dest.latitude_deg, dest.longitude_deg);
+
+    L.marker([fromLat, fromLng], { icon: icon('marker-visited') })
+      .bindTooltip(st.curName)
+      .addTo(map);
+
+    st.visitedMarkers.push(st.currentMarker);
+
+    map.flyTo(
+      [dest.latitude_deg, dest.longitude_deg],
+      Math.max(map.getZoom(), 4),
+      { duration: 1.2 }
+    );
+
+    await loadStatus();
+
+  } catch (e) {
+    showMessage('Connection error: ' + e.message, 'error');
+  }
+}
+
+//STATUS
+async function loadStatus() {
+  try {
+    const res  = await fetch(API+'/status/'+st.sessionId);
+    const data = await res.json();
+    if (data.status === 'error') { showMessage('Session error — restart.','error'); return; }
+
+    const { game_state:gs, current_location_data:loc, destinations, message, weather, is_completed, is_lost, loss_reason } = data;
+
+    updateHUD(gs);
+    st.curLat = parseFloat(loc.latitude_deg);
+    st.curLng = parseFloat(loc.longitude_deg);
+    st.curName = loc.name;
+
+    document.getElementById('locationName').textContent    = loc.name;
+    document.getElementById('locationCountry').textContent = 'Country: '+loc.iso_country;
+    document.getElementById('locationCoords').textContent  = st.curLat.toFixed(4)+'°, '+st.curLng.toFixed(4)+'°';
+
+    placeCurrentMarker(st.curLat, st.curLng, loc.name);
+    updateMinimap(st.curLat, st.curLng);
+    buildDestinations(destinations, st.curLat, st.curLng);
+    showWeather(weather, data.visited_count);
+
+
