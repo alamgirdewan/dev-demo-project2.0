@@ -102,15 +102,53 @@
       </div>
     </aside>
     
-<!--MAP-->
+  <!--MAP-->
     <div id="map"></div>
 
- 
-    <script src="script.js"></script>
+  <!--RIGHT-->
+    <aside class="panel right-panel">
+      <div class="card dest-card">
+        <div class="card-title">&#128681; Choose Your Destination</div>
+        <div id="destinationsPanel" class="dest-list">
+          <p class="hint">Calculating routes…</p>
+        </div>
+      </div>
+    </aside>
+
   </div>
-</div>>
+</div>
+
+<!--FINAL-->
+<div id="gameOverScreen" class="screen">
+  <div class="over-body">
+    <div class="result-card">
+      <div class="result-badge" id="resultBadge">&#127937;</div>
+      <h2 id="resultTitle" class="result-title">Mission Report</h2>
+      <div class="result-grid">
+        <div class="stat"><span>Captain</span><strong id="resultName">—</strong></div>
+        <div class="stat"><span>Final Score</span><strong id="resultScore">0</strong></div>
+        <div class="stat"><span>CO₂ Remaining</span><strong id="resultBudget">0</strong></div>
+        <div class="stat"><span>Parts</span><strong id="resultParts">0/5</strong></div>
+        <div class="stat"><span>Airports</span><strong id="resultAirports">0/10</strong></div>
+        <div class="stat"><span>Rating</span><strong id="resultRating">—</strong></div>
+      </div>
+      <div class="result-actions">
+        <button id="playAgainBtn" class="btn btn-primary">PLAY AGAIN</button>
+        <button id="showLeaderboardResultBtn" class="btn btn-outline">&#127942; LEADERBOARD</button>
+      </div>
+    </div>
+    <div id="leaderboardResult" class="lb-card hidden">
+      <div class="card-title" style="margin-bottom:14px">&#127942; Top Scores</div>
+      <div id="leaderboardResultList" class="lb-list"></div>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
 </body>
-</html>
+</html>    
+
+
 
 
 
