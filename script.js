@@ -403,3 +403,32 @@ document.addEventListener('keydown', e => { if(e.key==='Escape') document.getEle
 
 window.addEventListener('load', () => { initMaps(); showScreen('welcomeScreen'); });
 
+function showCelebration() {
+
+  const el = document.createElement('div');
+
+  el.innerHTML = '\u{1F389}';
+
+  el.style.position = 'fixed';
+  el.style.top = '40%';
+  el.style.left = '50%';
+  el.style.transform = 'translate(-50%, -50%)';
+  el.style.fontSize = '60px';
+  el.style.zIndex = '9999';
+  el.style.pointerEvents = 'none';
+
+  document.body.appendChild(el);
+
+  // small pop animation (JS only)
+  el.animate([
+    { transform: 'translate(-50%, -50%) scale(0.5)', opacity: 0 },
+
+  ], {
+    duration: 400
+  });
+
+  // remove after 2 sec
+  setTimeout(() => {
+    el.remove();
+  }, 2000);
+}
