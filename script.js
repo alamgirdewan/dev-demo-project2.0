@@ -273,7 +273,7 @@ async function loadStatus() {
 
     if (message) {
 
-  // DEBUG (optional)
+  // DEBUG
   console.log("MESSAGE:", message);
 
   if (message.toLowerCase().includes("got")) {
@@ -419,7 +419,6 @@ function showCelebration() {
 
   document.body.appendChild(el);
 
-  // small pop animation (JS only)
   el.animate([
     { transform: 'translate(-50%, -50%) scale(0.5)', opacity: 0 },
 
@@ -427,7 +426,6 @@ function showCelebration() {
     duration: 400
   });
 
-  // remove after 2 sec
   setTimeout(() => {
     el.remove();
   }, 2000);
