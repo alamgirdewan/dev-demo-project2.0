@@ -186,13 +186,13 @@ function buildDestinations(destinations, curLat, curLng) {
     const dist = calcDist(curLat, curLng, dest.latitude_deg, dest.longitude_deg);
 
     const m = L.marker([dest.latitude_deg, dest.longitude_deg], { icon:icon('marker-option') })
-      .bindTooltip('✈️ '+dest.name+' | CO₂: '+cost, { direction:'top' }).addTo(map);
+      .bindTooltip('U+2708 '+dest.name+' | CO₂: '+cost, { direction:'top' }).addTo(map);
     m.on('click', () => travelTo(dest, cost, curLat, curLng));
     st.optionMarkers.push(m);
 
     const btn = document.createElement('button');
     btn.className = 'dest-btn';
-    btn.innerHTML = `<span class="dest-name">✈️ ${dest.name}</span>
+    btn.innerHTML = `<span class="dest-name">U+2708 ${dest.name}</span>
       <div class="dest-meta"><span>${dest.iso_country} · ${dist.toFixed(0)} km</span>
       <span class="dest-cost">CO₂ −${cost}</span></div>`;
     btn.onclick = () => travelTo(dest, cost, curLat, curLng);
