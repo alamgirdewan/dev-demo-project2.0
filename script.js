@@ -273,10 +273,9 @@ async function loadStatus() {
 
     if (message) {
 
-  // DEBUG
-  console.log("MESSAGE:", message);
 
-  if (message.toLowerCase().includes("got")) {
+
+  if (message.toLowerCase().includes("collected")) {
     showCelebration();
   }
 
