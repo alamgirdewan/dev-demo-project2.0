@@ -186,7 +186,7 @@ function buildDestinations(destinations, curLat, curLng) {
     const dist = calcDist(curLat, curLng, dest.latitude_deg, dest.longitude_deg);
 
     const m = L.marker([dest.latitude_deg, dest.longitude_deg], { icon:icon('marker-option') })
-      .bindTooltip('\u2708 ' + dest.name + ' | CO\u2082: ' + cost, { direction: 'top' }).addTo(map);
+      .bindTooltip('\u{2708} ' + dest.name + ' | CO\u2082: ' + cost, { direction: 'top' }).addTo(map);
     m.on('click', () => travelTo(dest, cost, curLat, curLng));
     st.optionMarkers.push(m);
 
