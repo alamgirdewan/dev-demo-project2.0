@@ -138,11 +138,11 @@ function showWeather(weather, visitedCount) {
     return;
   }
   if (weather.co2_effect > 0) {
-    eff.textContent = '☀ Perfect conditions: +' + weather.co2_effect + ' CO₂ bonus';
+    eff.textContent = '\u2600 Perfect conditions: +' + weather.co2_effect + ' CO₂ bonus';
     eff.className = 'weather-effect bonus';
   } else if (weather.co2_effect < 0) {
     const severity = weather.co2_effect < -800 ? 'bad' : 'penalty';
-    eff.textContent = '⚠ Weather penalty: ' + weather.co2_effect + ' CO₂';
+    eff.textContent = '\u26A0 Weather penalty: ' + weather.co2_effect + ' CO₂';
     eff.className = 'weather-effect ' + severity;
   } else {
     eff.textContent = 'No weather effect';
