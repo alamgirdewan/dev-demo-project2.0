@@ -192,7 +192,7 @@ function buildDestinations(destinations, curLat, curLng) {
 
     const btn = document.createElement('button');
     btn.className = 'dest-btn';
-    btn.innerHTML = `<span class="dest-name">U+2708 ${dest.name}</span>
+    btn.innerHTML = `<span class="dest-name">&#9992; ${dest.name}</span>
       <div class="dest-meta"><span>${dest.iso_country} · ${dist.toFixed(0)} km</span>
       <span class="dest-cost">CO₂ −${cost}</span></div>`;
     btn.onclick = () => travelTo(dest, cost, curLat, curLng);
